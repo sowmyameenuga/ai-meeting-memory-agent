@@ -20,6 +20,7 @@ This project is an AI-powered meeting assistant that remembers past conversation
 - Python
 - Streamlit
 - Scikit-learn (TF-IDF)
+- groq ai
 
 **Run locally**
 pip install -r requirements.txt
