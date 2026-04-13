@@ -5,8 +5,7 @@ from groq import Groq
 # =========================
 # 🔐 GROQ API KEY
 # =========================
-client = Groq(api_key="you're api key here")
-
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # =========================
 # 🧠 LOAD MEMORY
 # =========================
