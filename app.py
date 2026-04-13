@@ -1,91 +1,131 @@
 import streamlit as st
 import json
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from groq import Groq
 
-# ---------------- MEMORY ----------------
+# =========================
+# 🔐 GROQ API KEY
+# =========================
+client = Groq(api_key="you're api key here")
+
+# =========================
+# 🧠 LOAD MEMORY
+# =========================
 try:
     with open("memory.json", "r") as f:
         memory = json.load(f)
 except:
     memory = []
 
+# =========================
+# 💾 SAVE MEMORY
+# =========================
 def save_memory():
     with open("memory.json", "w") as f:
         json.dump(memory, f, indent=2)
 
+# =========================
+# ➕ ADD MEMORY
+# =========================
 def add_memory(text):
     memory.append({"text": text})
     save_memory()
 
-# ---------------- AI SEARCH (SMART) ----------------
-def get_answer(query):
-    if not memory:
-        return None
+# =========================
+# 📚 GET MEMORY CONTEXT
+# =========================
+def get_memory_context():
+    return "\n".join([m["text"] for m in memory[-20:]])
 
-    docs = [item["text"] for item in memory]
+# =========================
+# 🧠 QUESTION CHECK
+# =========================
+def is_question(text):
+    text = text.lower()
+    return (
+        "?" in text or
+        text.startswith(("who", "what", "when", "where", "how"))
+    )
 
-    # Combine query + memory
-    all_text = docs + [query]
+# =========================
+# 🤖 GROQ AI FUNCTION
+# =========================
+def ask_llm(question):
+    memory_text = get_memory_context()
 
-    vectorizer = TfidfVectorizer().fit_transform(all_text)
-    vectors = vectorizer.toarray()
+    prompt = f"""
+You are an AI Meeting Assistant.
 
-    query_vec = vectors[-1]
-    memory_vecs = vectors[:-1]
+Use MEMORY to answer the question.
 
-    similarities = cosine_similarity([query_vec], memory_vecs)[0]
+MEMORY:
+{memory_text}
 
-    best_index = similarities.argmax()
-    best_score = similarities[best_index]
+QUESTION:
+{question}
 
-    if best_score < 0.2:
-        return None
+Rules:
+- If answer exists in memory, use it
+- If not found, say "Not found in memory"
+- Be short and clear
+"""
 
-    return docs[best_index]
-
-# ---------------- UI ----------------
-st.set_page_config(page_title="AI Memory Agent", page_icon="🧠")
-st.title("🧠 AI Meeting Memory Agent (Smart Version)")
-
-user_input = st.text_input("💬 Ask or add something")
-
-if st.button("🚀 Submit"):
-    if user_input:
-
-        text = user_input.strip()
-
-        # ❌ Don't store questions
-        is_question = (
-            "?" in text or
-            text.lower().startswith(("who", "what", "when", "where", "how"))
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}]
         )
 
-        if is_question:
-            st.info("🔎 Thinking using AI memory...")
+        return response.choices[0].message.content
 
-            answer = get_answer(text)
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-            if answer:
+# =========================
+# 🎨 STREAMLIT UI
+# =========================
+st.set_page_config(page_title="AI Meeting Memory Agent", page_icon="🧠")
+
+st.title("🧠 AI Meeting Memory Agent (Groq + Memory)")
+
+user_input = st.text_input("💬 Enter meeting note or question")
+
+col1, col2 = st.columns(2)
+
+# =========================
+# 🚀 SUBMIT BUTTON
+# =========================
+with col1:
+    if st.button("🚀 Submit"):
+        if user_input:
+
+            if is_question(user_input):
+                st.info("🔎 Thinking using Groq AI + Memory...")
+                answer = ask_llm(user_input)
                 st.success(f"👉 Answer: {answer}")
+
             else:
-                st.warning("🤔 No relevant memory found")
+                add_memory(user_input)
+                st.success("🧠 Stored in memory!")
 
         else:
-            add_memory(text)
-            st.success("🧠 Learned and stored!")
+            st.warning("Please enter something")
 
-    else:
-        st.warning("Please enter something")
+# =========================
+# 📌 SHOW MEMORY
+# =========================
+with col2:
+    if st.button("📌 Show Memory"):
+        st.subheader("🧠 Stored Memory")
 
-# ---------------- VIEW MEMORY ----------------
-if st.button("📚 Show Memory"):
-    st.subheader("🧠 Stored Knowledge")
+        if memory:
+            for item in memory:
+                st.write("•", item["text"])
+        else:
+            st.write("No memory found")
 
-    for item in memory:
-        st.write("•", item["text"])
-
-# ---------------- CLEAR MEMORY ----------------
+# =========================
+# 🧹 CLEAR MEMORY
+# =========================
 if st.button("🧹 Clear Memory"):
     memory.clear()
     save_memory()
