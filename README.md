@@ -24,3 +24,7 @@ This project is an AI-powered meeting assistant that remembers past conversation
 **Run locally**
 pip install -r requirements.txt
 streamlit run app.py
+
+
+**live link**
+https://ai-meeting-memory-agent-apyuzwnckcga5rkhsgdbza.streamlit.app/
