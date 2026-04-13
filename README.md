@@ -30,6 +30,7 @@ streamlit run app.py
 https://ai-meeting-memory-agent-apyuzwnckcga5rkhsgdbza.streamlit.app/
 
 
-<img width="1040" height="629" alt="Screenshot 2026-04-13 170522" src="https://github.com/user-attachments/assets/1194dfc6-3a90-499f-81d2-0f85bf250866" />
 
-<img width="1046" height="692" alt="Screenshot 2026-04-13 170456" src="https://github.com/user-attachments/assets/d1397ca3-61e2-4e22-ab6d-979d9cda972c" />
+<img width="1017" height="610" alt="image" src="https://github.com/user-attachments/assets/fd10c6f7-9385-44ed-9268-1dbe5adb17d5" />
+
+<img width="1037" height="711" alt="image" src="https://github.com/user-attachments/assets/0782270b-0ac2-4218-9471-51b1f2a4828e" />
